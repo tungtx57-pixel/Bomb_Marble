@@ -282,6 +282,12 @@ else
 	cp "$IMAGE" "${OUTPUT_DIR}/Image_${LOCALVERSION}"
 fi
 
+if [ -f "${KDIR}/out/Module.symvers" ]; then
+	cp "${KDIR}/out/Module.symvers" "${OUTPUT_DIR}/Image_vmlinux.symvers"
+elif [ -f "${KDIR}/out/vmlinux.symvers" ]; then
+	cp "${KDIR}/out/vmlinux.symvers" "${OUTPUT_DIR}/Image_vmlinux.symvers"
+fi
+
 ########## Module & DTB Handling ##########
 
 both_need_modules='
