@@ -57,7 +57,7 @@ jobs:
           echo "SHORT_SHA=${GITHUB_SHA:0:12}" >> $GITHUB_ENV
           
           sudo apt update
-          sudo apt install -y aria2 python3 python-is-python3 python3-rich wget git
+          sudo apt install -y aria2 python3 python-is-python3 python3-rich wget git gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
           
           mkdir -p ~/build_toolchain
           
@@ -147,5 +147,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
-          path: ~/AnyKernel3/Melt-Rebuild-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
+          path: ~/AnyKernel3/Melt-ReBuild-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
           if-no-files-found: error
