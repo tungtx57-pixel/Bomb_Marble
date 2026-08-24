@@ -59,7 +59,7 @@ while [ $# != 0 ]; do
 		"--kittisu") {
 			with_ksu=true
 			ksu_variant="KittiSU"
-			ksu_repo="https://github.com/thinhzero/KittiSU.git"
+			ksu_repo="https://github.com/terebiko/KittiSU.git"
 		};;
 		"--susfs") {
 			with_ksu=true
@@ -591,8 +591,14 @@ strip_kmod() {
 
 	[ -n "$module" ] || return 1
 	if [ ! -f "$module" ]; then
-		echo -e "${yellow}! ${module} not found! ${white}"
-		return 1
+		bname=$(basename "$module")
+		found_mod=$(find "${KDIR}/out" -name "$bname" 2>/dev/null | head -n 1)
+		if [ -n "$found_mod" ] && [ -f "$found_mod" ]; then
+			module="$found_mod"
+		else
+			echo -e "${yellow}! ${module} not found! ${white}"
+			return 1
+		fi
 	fi
 
 	module_file_name=$(basename $module)
