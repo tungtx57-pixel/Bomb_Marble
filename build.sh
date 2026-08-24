@@ -269,10 +269,16 @@ if [ ! -f "$IMAGE" ]; then
 fi
 
 if $with_susfs; then
+	cp "$IMAGE" "${OUTPUT_DIR}/Image"
+	cp "$IMAGE" "${OUTPUT_DIR}/Image_ksu"
+	cp "$IMAGE" "${OUTPUT_DIR}/Image_susfs"
 	cp "$IMAGE" "${OUTPUT_DIR}/Image_susfs_${ksu_variant}_${LOCALVERSION}"
 elif $with_ksu; then
+	cp "$IMAGE" "${OUTPUT_DIR}/Image"
+	cp "$IMAGE" "${OUTPUT_DIR}/Image_ksu"
 	cp "$IMAGE" "${OUTPUT_DIR}/Image_${ksu_variant}_${LOCALVERSION}"
 else
+	cp "$IMAGE" "${OUTPUT_DIR}/Image"
 	cp "$IMAGE" "${OUTPUT_DIR}/Image_${LOCALVERSION}"
 fi
 
