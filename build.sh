@@ -478,20 +478,23 @@ strip_kmod() {
 	llvm-strip -S "$module" -o ${output_dir}/${module_file_name}
 }
 
-for module in $both_need_modules; do
-	strip_kmod "${KDIR}/out/$module" "${OUTPUT_DIR}/vendor_boot_modules"
-done
-
-cp ${OUTPUT_DIR}/vendor_boot_modules/* ${OUTPUT_DIR}/vendor_dlkm_modules 2>/dev/null || true
-
-for module in $vendor_boot_need_modules; do
-	strip_kmod "${KDIR}/out/$module" "${OUTPUT_DIR}/vendor_boot_modules"
-done
-for module in $vendor_dlkm_need_modules; do
-	strip_kmod "${KDIR}/out/$module" "${OUTPUT_DIR}/vendor_dlkm_modules"
-done
-for module in $alt_need_modules; do
-	strip_kmod "${KDIR}/out/$module" "${OUTPUT_DIR}/alt_kernel_modules"
+echo "- Finding and stripping all compiled modules..."
+find ${KDIR}/out -name "*.ko" | while read -r module; do
+	[ -f "$module" ] || continue
+	module_file_name=$(basename "$module")
+	case "$module_file_name" in
+		"qca6490.ko")
+			llvm-strip -S "$module" -o ${OUTPUT_DIR}/vendor_boot_modules/qca_cld3_qca6490.ko 2>/dev/null || true
+			llvm-strip -S "$module" -o ${OUTPUT_DIR}/vendor_dlkm_modules/qca_cld3_qca6490.ko 2>/dev/null || true
+			;;
+		"ntsync.ko")
+			llvm-strip -S "$module" -o ${OUTPUT_DIR}/alt_kernel_modules/${module_file_name} 2>/dev/null || true
+			;;
+		*)
+			llvm-strip -S "$module" -o ${OUTPUT_DIR}/vendor_boot_modules/${module_file_name} 2>/dev/null || true
+			llvm-strip -S "$module" -o ${OUTPUT_DIR}/vendor_dlkm_modules/${module_file_name} 2>/dev/null || true
+			;;
+	esac
 done
 
 t_end=$(date +"%s")
