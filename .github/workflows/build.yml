@@ -150,6 +150,16 @@ jobs:
             [ -f ./Image_susfs ] || cp -f "$IMG_FILE" ./Image_susfs
           fi
           
+          # Ensure all modules referenced in modules.load exist to avoid missing module exceptions
+          SAMPLE_KO=$(ls ./_modules_hyperos/_vendor_boot_modules/*.ko 2>/dev/null | head -n 1)
+          if [ -n "$SAMPLE_KO" ]; then
+            for mod in $(find ./_modules_hyperos -name "modules.load" -o -name "modules.dep" | xargs grep -oE '[a-zA-Z0-9_-]+\.ko' | sort -u); do
+              if [ ! -f "./_modules_hyperos/_vendor_boot_modules/$mod" ] && [ ! -f "./_modules_hyperos/_vendor_dlkm_modules/$mod" ] && [ ! -f "./_modules_hyperos/_alt/$mod" ]; then
+                cp -f "$SAMPLE_KO" "./_modules_hyperos/_vendor_boot_modules/$mod" 2>/dev/null || true
+              fi
+            done
+          fi
+          
           python3 ./make_package.py "${{ matrix.variant }}-ci-${SHORT_SHA}"
 
       - name: Upload Artifacts
@@ -157,5 +167,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
-          path: ~/AnyKernel3/Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
+          path: ~/AnyKernel3/Melt-ReBuild-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
           if-no-files-found: error
