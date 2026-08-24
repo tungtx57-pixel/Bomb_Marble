@@ -140,6 +140,14 @@ jobs:
           cp -f ~/dist/vendor_dlkm_modules/* ./_modules_hyperos/_vendor_dlkm_modules/ 2>/dev/null || true
           cp -f ~/dist/Image* ./ 2>/dev/null || true
           
+          # Ensure Image, Image_ksu, Image_susfs exist for AnyKernel3 make_package.py
+          IMG_FILE=$(ls ./Image* 2>/dev/null | head -n 1)
+          if [ -n "$IMG_FILE" ]; then
+            [ -f ./Image ] || cp -f "$IMG_FILE" ./Image
+            [ -f ./Image_ksu ] || cp -f "$IMG_FILE" ./Image_ksu
+            [ -f ./Image_susfs ] || cp -f "$IMG_FILE" ./Image_susfs
+          fi
+          
           python3 ./make_package.py "${{ matrix.variant }}-ci-${SHORT_SHA}"
 
       - name: Upload Artifacts
@@ -147,5 +155,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
-          path: ~/AnyKernel3/Melt-ReBuild-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
+          path: ~/AnyKernel3/Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
           if-no-files-found: error
