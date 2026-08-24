@@ -36,7 +36,31 @@ while [ $# != 0 ]; do
 	case $1 in
 		"--noclean") no_mkclean=true;;
 		"--noccache") no_ccache=true;;
-		"--ksu") with_ksu=true;;
+		"--ksu"|"--kernelsu") {
+			with_ksu=true
+			ksu_variant="KernelSU"
+			ksu_repo="https://github.com/tiann/KernelSU.git"
+		};;
+		"--kowsu") {
+			with_ksu=true
+			ksu_variant="KowSU"
+			ksu_repo="https://github.com/deepongi-labs/KernelSU-KoWSU.git"
+		};;
+		"--sukisu"|"--sukisu-ultra") {
+			with_ksu=true
+			ksu_variant="SukiSU_Ultra"
+			ksu_repo="https://github.com/SukiSU-Ultra/SukiSU-Ultra.git"
+		};;
+		"--resukisu") {
+			with_ksu=true
+			ksu_variant="ReSukiSU"
+			ksu_repo="https://github.com/ReSukiSU/ReSukiSU.git"
+		};;
+		"--kittisu") {
+			with_ksu=true
+			ksu_variant="KittiSU"
+			ksu_repo="https://github.com/thinhzero/KittiSU.git"
+		};;
 		"--susfs") {
 			with_ksu=true
 			with_susfs=true
@@ -110,6 +134,18 @@ fi
 ########## Make it ##########
 
 if ${with_ksu}; then
+	mkdir -p ~/KernelSU_source
+	cd ~/KernelSU_source
+	rm -rf KernelSU
+	echo -e "${gre}Cloning ${ksu_variant} from ${ksu_repo}...${white}"
+	if [ -n "$ksu_branch" ]; then
+		git clone "$ksu_repo" -b "$ksu_branch" KernelSU --depth=1
+	else
+		git clone "$ksu_repo" KernelSU --depth=1
+	fi
+	KERNELSU_REPO=$(pwd)/KernelSU
+	cd ${KDIR}
+
 	mkdir "${KDIR}/drivers/kernelsu"
 	ln -s "${KERNELSU_REPO}/.git" "${KDIR}/drivers/kernelsu/.git"
 	cp -r "${KERNELSU_REPO}/kernel" "${KDIR}/drivers/kernelsu/kernel"
@@ -163,8 +199,12 @@ if [ -f "$IMAGE" ]; then
 	else
 		image_filename=Image
 	fi
+	cp -f "$IMAGE" ${OUTPUT_DIR}/Image
+	cp -f "$IMAGE" ${OUTPUT_DIR}/Image_ksu
+	cp -f "$IMAGE" ${OUTPUT_DIR}/Image_susfs
 	cp -f "$IMAGE" ${OUTPUT_DIR}/${image_filename}
-	cp -f ${KDIR}/out/vmlinux.symvers ${OUTPUT_DIR}/${image_filename}_vmlinux.symvers
+	[ -f ${KDIR}/out/vmlinux.symvers ] && cp -f ${KDIR}/out/vmlinux.symvers ${OUTPUT_DIR}/Image_vmlinux.symvers || true
+	[ -f ${KDIR}/out/Module.symvers ] && cp -f ${KDIR}/out/Module.symvers ${OUTPUT_DIR}/Image_vmlinux.symvers || true
 	unset image_filename
 fi
 
