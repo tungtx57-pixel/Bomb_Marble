@@ -139,9 +139,11 @@ jobs:
           cp -f ~/dist/vendor_boot_modules/* ./_modules_hyperos/_vendor_boot_modules/ 2>/dev/null || true
           cp -f ~/dist/vendor_dlkm_modules/* ./_modules_hyperos/_vendor_dlkm_modules/ 2>/dev/null || true
           cp -f ~/dist/Image* ./ 2>/dev/null || true
+          [ -f ~/dist/Image_vmlinux.symvers ] && cp -f ~/dist/Image_vmlinux.symvers ./Image_vmlinux.symvers 2>/dev/null || true
+          [ -f ./Image_vmlinux.symvers ] || touch ./Image_vmlinux.symvers
           
           # Ensure Image, Image_ksu, Image_susfs exist for AnyKernel3 make_package.py
-          IMG_FILE=$(ls ./Image* 2>/dev/null | head -n 1)
+          IMG_FILE=$(ls ./Image* 2>/dev/null | grep -v "\.symvers" | head -n 1)
           if [ -n "$IMG_FILE" ]; then
             [ -f ./Image ] || cp -f "$IMG_FILE" ./Image
             [ -f ./Image_ksu ] || cp -f "$IMG_FILE" ./Image_ksu
