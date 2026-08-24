@@ -156,10 +156,19 @@ echo -e "${gre}LOCALVERSION = ${LOCALVERSION} $white"
 make_params="
 ARCH=arm64 \
 CC=clang \
+LD=ld.lld \
+AR=llvm-ar \
 NM=llvm-nm \
 OBJCOPY=llvm-objcopy \
 OBJDUMP=llvm-objdump \
+READELF=llvm-readelf \
+OBJSIZE=llvm-size \
 STRIP=llvm-strip \
+LLVM=1 \
+LLVM_IAS=1 \
+CROSS_COMPILE=aarch64-linux-gnu- \
+CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+CLANG_TRIPLE=aarch64-linux-gnu- \
 O=out \
 "
 
