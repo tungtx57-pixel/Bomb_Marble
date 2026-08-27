@@ -59,7 +59,7 @@ while [ $# != 0 ]; do
 		"--kittisu") {
 			with_ksu=true
 			ksu_variant="KittiSU"
-			ksu_repo="https://github.com/terebiko/KittiSU.git"
+			ksu_repo="https://github.com/thinhzero/KittiSU.git"
 		};;
 		"--susfs") {
 			with_ksu=true
@@ -192,20 +192,17 @@ fi
 ########## Processing products ##########
 
 if [ -f "$IMAGE" ]; then
-	if ${with_susfs}; then
-		image_filename=Image_susfs
-	elif ${with_ksu}; then
-		image_filename=Image_ksu
-	else
-		image_filename=Image
-	fi
 	cp -f "$IMAGE" ${OUTPUT_DIR}/Image
-	cp -f "$IMAGE" ${OUTPUT_DIR}/Image_ksu
-	cp -f "$IMAGE" ${OUTPUT_DIR}/Image_susfs
-	cp -f "$IMAGE" ${OUTPUT_DIR}/${image_filename}
 	[ -f ${KDIR}/out/vmlinux.symvers ] && cp -f ${KDIR}/out/vmlinux.symvers ${OUTPUT_DIR}/Image_vmlinux.symvers || true
 	[ -f ${KDIR}/out/Module.symvers ] && cp -f ${KDIR}/out/Module.symvers ${OUTPUT_DIR}/Image_vmlinux.symvers || true
-	unset image_filename
+
+	echo "- Packing Image into Image.7z ..."
+	rm -f ${OUTPUT_DIR}/Image.7z
+	if command -v 7za &>/dev/null; then
+		(cd ${OUTPUT_DIR} && 7za a -mx=9 Image.7z Image)
+	elif command -v 7z &>/dev/null; then
+		(cd ${OUTPUT_DIR} && 7z a -mx=9 Image.7z Image)
+	fi
 fi
 
 # vendor_boot 和 vendor_dlkm 共有且都需要替换的内核模块
