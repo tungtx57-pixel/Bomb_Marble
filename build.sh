@@ -203,6 +203,7 @@ if [ -f "$IMAGE" ]; then
 	elif command -v 7z &>/dev/null; then
 		(cd ${OUTPUT_DIR} && 7z a -mx=9 Image.7z Image)
 	fi
+	rm -f ${OUTPUT_DIR}/Image ${OUTPUT_DIR}/Image_ksu ${OUTPUT_DIR}/Image_susfs ${OUTPUT_DIR}/Image_vmlinux.symvers
 fi
 
 # vendor_boot 和 vendor_dlkm 共有且都需要替换的内核模块
