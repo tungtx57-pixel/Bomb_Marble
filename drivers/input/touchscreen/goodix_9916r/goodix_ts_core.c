@@ -43,7 +43,7 @@
 #define DISP_ID_DET 420
 #define DISP_ID1_DET 418
 
-static bool force_high_report_rate = false;
+static bool force_high_report_rate = true;
 module_param(force_high_report_rate, bool, S_IRUGO);
 
 #ifdef CONFIG_TOUCH_BOOST
