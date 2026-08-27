@@ -129,7 +129,7 @@ jobs:
         run: |
           cd ~
           rm -rf AnyKernel3
-          git clone https://github.com/tungtx57-pixel/Bomb_Marble.git -b Anykernel3 --depth=1
+          git clone https://github.com/tungtx57-pixel/Bomb_Marble.git -b Anykernel3 --depth=1 AnyKernel3
           cd AnyKernel3
           
           rm -f ./Image*
