@@ -59,7 +59,7 @@ while [ $# != 0 ]; do
 		"--kittisu") {
 			with_ksu=true
 			ksu_variant="KittiSU"
-			ksu_repo="https://github.com/thinhzero/KittiSU.git"
+			ksu_repo="https://github.com/terebiko/KittiSU.git"
 		};;
 		"--susfs") {
 			with_ksu=true
