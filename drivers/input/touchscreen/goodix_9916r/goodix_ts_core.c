@@ -2601,7 +2601,12 @@ static int goodix_send_ic_config(struct goodix_ts_core *cd, int type)
 	}
 
 	ts_info("try send config, id=0x%x", config_id);
-	return cd->hw_ops->send_config(cd, cfg->data, cfg->len);
+	int ret_cfg = cd->hw_ops->send_config(cd, cfg->data, cfg->len);
+	if (!ret_cfg && force_high_report_rate) {
+		cd->hw_ops->switch_report_rate(cd, true);
+		cd->report_rate = 480;
+	}
+	return ret_cfg;
 }
 
 /**
@@ -3045,6 +3050,7 @@ static void goodix_set_game_work(struct work_struct *work)
 		ts_err("send game mode fail");
 
 	if (force_high_report_rate) {
+		usleep_range(2000, 3000);
 		hw_ops->switch_report_rate(goodix_core_data, true);
 		goodix_core_data->report_rate = 480;
 	} else {
@@ -3241,9 +3247,9 @@ static void goodix_init_touchmode_data(void)
 	/* latency */
 	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_MAX_VALUE] = 4;
 	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_MIN_VALUE] = 0;
-	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_DEF_VALUE] = 2;
-	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][SET_CUR_VALUE] = 2;
-	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_CUR_VALUE] = 2;
+	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_DEF_VALUE] = 0;
+	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][SET_CUR_VALUE] = 4;
+	xiaomi_touch_interfaces.touch_mode[Touch_Tolerance][GET_CUR_VALUE] = 4;
 
 	/* aim sensitivity */
 	xiaomi_touch_interfaces.touch_mode[Touch_Aim_Sensitivity][GET_MAX_VALUE] = 4;
