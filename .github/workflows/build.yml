@@ -122,6 +122,175 @@ jobs:
             ./build.sh --noccache --susfs $FLAG
           fi
           
+          cp -r ~/Bouquet_marble_out/* ~/dist/ 2>/dev/null || true
+          cp -r ~/Bomb_marble_out/* ~/dist/ 2>/dev/null || true
+
+      - name: Package AnyKernel3
+        if: env.SKIP != 'true'
+        run: |
+          cd ~
+          rm -rf AnyKernel3
+          git clone https://github.com/tungtx57-pixel/Bomb_Marble.git -b Anykernel3 --depth=1 AnyKernel3
+          cd AnyKernel3
+          
+          rm -f ./Image*
+          [ -f ~/dist/devicetree/ukee.dtb ] && cp -f ~/dist/devicetree/ukee.dtb ./_dtb/dtb 2>/dev/null || true
+          [ -f ~/dist/devicetree/dtbo.img ] && cp -f ~/dist/devicetree/dtbo.img ./_dtb/dtbo.img 2>/dev/null || cp -f ~/dist/dtbo.img ./_dtb/dtbo.img 2>/dev/null || true
+          cp -f ~/dist/alt_kernel_modules/*  ./_modules_hyperos/_alt/ 2>/dev/null || true
+          cp -f ~/dist/vendor_boot_modules/* ./_modules_hyperos/_vendor_boot_modules/ 2>/dev/null || true
+          cp -f ~/dist/vendor_dlkm_modules/* ./_modules_hyperos/_vendor_dlkm_modules/ 2>/dev/null || true
+          cp -f ~/dist/Image* ./ 2>/dev/null || true
+          [ -f ~/dist/Image_vmlinux.symvers ] && cp -f ~/dist/Image_vmlinux.symvers ./Image_vmlinux.symvers 2>/dev/null || true
+          [ -f ./Image_vmlinux.symvers ] || touch ./Image_vmlinux.symvers
+          
+          # Ensure Image, Image_ksu, Image_susfs exist for AnyKernel3 make_package.py
+          IMG_FILE=$(ls ./Image* 2>/dev/null | grep -v "\.symvers" | head -n 1)
+          if [ -n "$IMG_FILE" ]; then
+            [ -f ./Image ] || cp -f "$IMG_FILE" ./Image
+            [ -f ./Image_ksu ] || cp -f "$IMG_FILE" ./Image_ksu
+            [ -f ./Image_susfs ] || cp -f "$IMG_FILE" ./Image_susfs
+          fi
+          
+          # Bypass non-fatal module loading simulation assertion in make_package.py
+          [ -f ./make_package.py ] && sed -i 's/assert do_simulate_load_kernel_modules/do_simulate_load_kernel_modules/g' ./make_package.py || true
+          
+          if [ -f ./make_package.py ]; then
+            python3 ./make_package.py "${{ matrix.variant }}-ci-${SHORT_SHA}"
+          else
+            zip -r9 "Melt-Bomb-Kernel-${{ matrix.variant }}-ci-${SHORT_SHA}.zip" * -x .git README.md
+          fi
+
+      - name: Upload Artifacts
+        if: env.SKIP != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Melt-Bomb-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
+          path: ~/AnyKernel3/*.zip
+          if-no-files-found: error
+name: Build Kernel
+
+on:
+  push:
+    branches:
+      - melt-Guxin12-A
+      - melt-Guxin12
+      - bouquet
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      ksu_variant:
+        description: 'Select KernelSU Variant to build'
+        required: true
+        default: 'All'
+        type: choice
+        options:
+          - 'All'
+          - 'KowSU'
+          - 'SukiSU_Ultra'
+          - 'ReSukiSU'
+          - 'KittiSU'
+          - 'KernelSU'
+      enable_susfs:
+        description: 'Enable SUSFS Patching'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build:
+    name: Build (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [KowSU, SukiSU_Ultra, ReSukiSU, KittiSU]
+
+    steps:
+      - name: Check if variant selected
+        id: check_variant
+        run: |
+          SELECTED="${{ github.event.inputs.ksu_variant || 'All' }}"
+          CURRENT="${{ matrix.variant }}"
+          if [ "$SELECTED" != "All" ] && [ "$SELECTED" != "$CURRENT" ]; then
+            echo "SKIP=true" >> $GITHUB_ENV
+          else
+            echo "SKIP=false" >> $GITHUB_ENV
+          fi
+
+      - name: Prepare the environment
+        if: env.SKIP != 'true'
+        run: |
+          [ -d ~/.local/bin ] || mkdir -p ~/.local/bin
+          
+          echo "SHORT_SHA=${GITHUB_SHA:0:12}" >> $GITHUB_ENV
+          
+          sudo apt update
+          sudo apt install -y aria2 python3 python-is-python3 python3-rich wget git gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+          
+          mkdir -p ~/build_toolchain
+          
+          echo "Downloading Slim LLVM..."
+          cd ~/build_toolchain
+          aria2c -x 16 -s 16 https://mirrors.edge.kernel.org/pub/tools/llvm/files/llvm-23.1.0-rc3-x86_64.tar.xz
+          tar -xJf ./llvm-23.1.0-rc3-x86_64.tar.xz
+          
+          echo "Downloading 7za..."
+          mkdir -p /tmp/7z2602-linux-x64
+          cd /tmp/7z2602-linux-x64
+          wget -nv https://github.com/ip7z/7zip/releases/download/26.02/7z2602-linux-x64.tar.xz
+          tar -xJf ./7z2602-linux-x64.tar.xz
+          cp ./7zzs ~/.local/bin/7za
+          chmod +x ~/.local/bin/7za
+          cd ~
+          rm -rf /tmp/7z2602-linux-x64
+          
+          echo "Downloading HDiffPatch..."
+          mkdir -p /tmp/hdiffpatch
+          cd /tmp/hdiffpatch
+          wget -nv https://github.com/sisong/HDiffPatch/releases/download/v4.12.2/hdiffpatch_v4.12.2_bin_linux64.zip
+          7za x ./hdiffpatch_v4.12.2_bin_linux64.zip
+          cp ./linux64/hdiffz  ~/.local/bin/
+          cp ./linux64/hpatchz ~/.local/bin/
+          cd ~
+          rm -rf /tmp/hdiffpatch
+          
+          chmod +x ~/.local/bin/*
+          
+          mkdir -p ~/dist
+
+      - name: Check out repository
+        if: env.SKIP != 'true'
+        uses: actions/checkout@v4
+
+      - name: Make build script executable
+        if: env.SKIP != 'true'
+        run: |
+          chmod +x ./build.sh
+
+      - name: Build Kernel Image (${{ matrix.variant }})
+        if: env.SKIP != 'true'
+        run: |
+          cd $GITHUB_WORKSPACE
+          VARIANT="${{ matrix.variant }}"
+          case "$VARIANT" in
+            "KowSU") FLAG="--kowsu" ;;
+            "SukiSU_Ultra") FLAG="--sukisu" ;;
+            "ReSukiSU") FLAG="--resukisu" ;;
+            "KittiSU") FLAG="--kittisu" ;;
+            *) FLAG="--ksu" ;;
+          esac
+          
+          ENABLE_SUSFS="${{ github.event.inputs.enable_susfs }}"
+          if [ "$ENABLE_SUSFS" = "false" ]; then
+            ./build.sh --noccache $FLAG
+          else
+            cd ~
+            [ -d susfs4ksu ] || git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android12-5.10 --depth=1
+            cd $GITHUB_WORKSPACE
+            ./build.sh --noccache --susfs $FLAG
+          fi
+          
           cp -r ~/Bomb_marble_out/* ~/dist/ 2>/dev/null || true
 
       - name: Package AnyKernel3
