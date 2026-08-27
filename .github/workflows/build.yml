@@ -122,14 +122,14 @@ jobs:
             ./build.sh --noccache --susfs $FLAG
           fi
           
-          cp -r ~/Bouquet_marble_out/* ~/dist/ 2>/dev/null || true
+          cp -r ~/Bomb_marble_out/* ~/dist/ 2>/dev/null || true
 
       - name: Package AnyKernel3
         if: env.SKIP != 'true'
         run: |
           cd ~
           rm -rf AnyKernel3
-          git clone https://github.com/Pzqqt/AnyKernel3.git -b Marble-Bouquet --depth=1
+          git clone https://github.com/tungtx57-pixel/Bomb_Marble.git -b Anykernel3 --depth=1
           cd AnyKernel3
           
           rm -f ./Image*
@@ -159,6 +159,6 @@ jobs:
         if: env.SKIP != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
-          path: ~/AnyKernel3/Bouquet-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
+          name: Melt-Bomb-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}
+          path: ~/AnyKernel3/Melt-Bomb-Kernel-${{ matrix.variant }}-ci-${{ env.SHORT_SHA }}.zip
           if-no-files-found: error
