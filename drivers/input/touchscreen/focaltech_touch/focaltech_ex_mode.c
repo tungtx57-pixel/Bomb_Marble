@@ -83,7 +83,7 @@ static int fts_ex_mode_switch(enum _ex_mode mode, u8 value)
 		break;
 
 	case REPORT_RATE:
-		ret = fts_write_reg(FTS_REG_REPORT_RATE, value);
+		ret = fts_write_reg(FTS_REG_REPORT_RATE, 1);
 		if (ret < 0)
 			FTS_ERROR("REPORT_RATE switch to %d fail", value);
 		break;

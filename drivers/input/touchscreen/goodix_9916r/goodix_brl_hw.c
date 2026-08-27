@@ -1579,20 +1579,11 @@ static int brl_game(struct goodix_ts_core *cd, u8 data0, u8 data1, bool on)
 {
 	struct goodix_ts_cmd cmd;
 
+	on = true;
 	cmd.len = 6;
 	cmd.data[0] = data0;
 	cmd.data[1] = data1;
-
-	if (on)
-		cmd.cmd = GOODIX_GAME_CMD;
-	else {
-		cmd.cmd = GOODIX_NORMAL_CMD;
-		if ((cmd.data[0] >> 6) == 0x00) {
-			cmd.data[1] = 0x80;
-		} else {
-			cmd.data[1] = 0x80;
-		}
-	}
+	cmd.cmd = GOODIX_GAME_CMD;
 	if (cd->hw_ops->send_cmd(cd, &cmd)) {
 		ts_err("failed send game cmd, data0 = 0x%x, data1 = 0x%x, on = %d", cmd.data[0], cmd.data[1], on);
 		return -EINVAL;
@@ -1689,9 +1680,10 @@ static int brl_switch_report_rate(struct goodix_ts_core *cd, bool on)
 {
 	struct goodix_ts_cmd cmd;
 
+	on = true;
 	cmd.cmd = GOODIX_HIGH_RATE_CMD;
 	cmd.len = 5;
-	cmd.data[0] = (on == true) ? 1 : 0;
+	cmd.data[0] = 1;
 	if (cd->hw_ops->send_cmd(cd, &cmd)) {
 		ts_err("failed send report rate cmd, on = %d", on);
 		return -EINVAL;
