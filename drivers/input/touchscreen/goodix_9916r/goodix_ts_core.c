@@ -2582,6 +2582,7 @@ static int goodix_send_ic_config(struct goodix_ts_core *cd, int type)
 {
 	u32 config_id;
 	struct goodix_ic_config *cfg;
+	int ret_cfg;
 
 	if (type >= GOODIX_MAX_CONFIG_GROUP) {
 		ts_err("unsupproted config type %d", type);
@@ -2601,7 +2602,7 @@ static int goodix_send_ic_config(struct goodix_ts_core *cd, int type)
 	}
 
 	ts_info("try send config, id=0x%x", config_id);
-	int ret_cfg = cd->hw_ops->send_config(cd, cfg->data, cfg->len);
+	ret_cfg = cd->hw_ops->send_config(cd, cfg->data, cfg->len);
 	if (!ret_cfg && force_high_report_rate) {
 		cd->hw_ops->switch_report_rate(cd, true);
 		cd->report_rate = 480;
